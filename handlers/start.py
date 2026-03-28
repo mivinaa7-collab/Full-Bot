@@ -6,7 +6,6 @@ from aiogram.fsm.context import FSMContext
 from database import is_approved
 from keyboards.kb import main_menu_kb
 from states.states import Form
-from config import PHOTO_FILE_ID
 
 router = Router()
 
@@ -15,7 +14,7 @@ async def start(message: Message, state: FSMContext):
     if is_approved(message.from_user.id):
 
         await message.answer_photo(
-            photo=PHOTO_FILE_ID,
+            photo="https://i.ibb.co/F4qhJVTk/325-ACC37-3-A44-4513-90-B6-3794-A64-CD078.png",
             caption=f"🌿 Привет, {message.from_user.full_name}"
         )
 
