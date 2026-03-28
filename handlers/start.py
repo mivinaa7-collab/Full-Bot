@@ -10,15 +10,20 @@ from config import PHOTO_FILE_ID
 
 router = Router()
 
-
 @router.message(CommandStart())
 async def start(message: Message, state: FSMContext):
     if is_approved(message.from_user.id):
+
         await message.answer_photo(
             photo=PHOTO_FILE_ID,
-            caption=f"🌿 Привет, {message.from_user.full_name}",
+            caption=f"🌿 Привет, {message.from_user.full_name}"
+        )
+
+        await message.answer(
+            "Выбери действие:",
             reply_markup=main_menu_kb()
         )
+
         return
 
     await message.answer("Расскажи о себе:")
