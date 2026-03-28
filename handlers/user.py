@@ -1,59 +1,74 @@
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
-import uuid
 
-from database import *
-from states.states import Form
+from database import create_link, get_links
+from keyboards.kb import main_menu_kb
+from states.states import LinkForm
 
 router = Router()
 
-
-def generate_link(user_id, project):
-    return f"https://example.com/{project}/{uuid.uuid4().hex[:6]}"
-
-
-
-# ---------- СОЗДАНИЕ ССЫЛКИ ----------
+# --- СОЗДАНИЕ ССЫЛКИ ---
 
 @router.callback_query(F.data == "create_link")
-async def create_link(c: CallbackQuery, state: FSMContext):
-    await c.answer()
-    await c.message.answer("Введи цену:")
-    await state.set_state(Form.price)
+async def create_link_start(call: CallbackQuery, state: FSMContext):
+    await call.message.answer("Введи название проекта:")
+    await state.set_state(LinkForm.project)
+    await call.answer()
 
 
-@router.message(Form.price)
-async def price(m: Message, state: FSMContext):
-    if not m.text.isdigit():
-        return await m.answer("❌ Введи число")
+@router.message(LinkForm.project)
+async def link_project(message: Message, state: FSMContext):
+    await state.update_data(project=message.text)
+    await message.answer("Введи цену:")
+    await state.set_state(LinkForm.price)
 
-    link = generate_link(m.from_user.id, "default")
 
-    cursor.execute(
-        "INSERT INTO links (user_id, project, price, link) VALUES (?, ?, ?, ?)",
-        (m.from_user.id, "default", int(m.text), link)
+@router.message(LinkForm.price)
+async def link_price(message: Message, state: FSMContext):
+    await state.update_data(price=message.text)
+    await message.answer("Вставь ссылку:")
+    await state.set_state(LinkForm.link)
+
+
+@router.message(LinkForm.link)
+async def link_done(message: Message, state: FSMContext):
+    data = await state.get_data()
+
+    create_link(
+        user_id=message.from_user.id,
+        project=data["project"],
+        price=int(data["price"]),
+        link=message.text
     )
-    conn.commit()
 
-    log(m.from_user.id, "create link")
-
-    await m.answer(f"🔗 Ссылка:\n{link}")
+    await message.answer("✅ Ссылка создана", reply_markup=main_menu_kb())
     await state.clear()
 
 
-# ---------- МОИ ССЫЛКИ ----------
+# --- МОИ ОБЪЯВЛЕНИЯ ---
 
 @router.callback_query(F.data == "my_posts")
-async def my_posts(c: CallbackQuery):
-    await c.answer()
+async def my_posts(call: CallbackQuery):
+    links = get_links(call.from_user.id)
 
-    cursor.execute("SELECT link FROM links WHERE user_id=?", (c.from_user.id,))
-    data = cursor.fetchall()
-
-    if not data:
-        await c.message.answer("📭 Нет ссылок")
+    if not links:
+        await call.message.answer("❌ У тебя нет объявлений")
+        await call.answer()
         return
 
-    text = "\n".join([i[0] for i in data])
-    await c.message.answer(f"🐰 Твои ссылки:\n\n{text}")
+    text = "📦 Твои объявления:\n\n"
+
+    for project, price, link in links:
+        text += f"🏝 {project}\n💰 {price}\n🔗 {link}\n\n"
+
+    await call.message.answer(text)
+    await call.answer()
+
+
+# --- НАСТРОЙКИ ---
+
+@router.callback_query(F.data == "settings")
+async def settings(call: CallbackQuery):
+    await call.message.answer("⚙️ Настройки (пока пусто)")
+    await call.answer()
