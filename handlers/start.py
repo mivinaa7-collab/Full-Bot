@@ -16,10 +16,6 @@ async def start(message: Message, state: FSMContext):
         await message.answer_photo(
             photo="https://i.ibb.co/F4qhJVTk/325-ACC37-3-A44-4513-90-B6-3794-A64-CD078.png",
             caption=f"🌿 Привет, {message.from_user.full_name}"
-        )
-
-        await message.answer(
-            "Выбери действие:",
             reply_markup=main_menu_kb()
         )
 
