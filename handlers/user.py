@@ -33,13 +33,13 @@ async def choose_project(callback: CallbackQuery):
     
     project = callback.data.split("_")[1]
     
-await state.update_data(project=project)
+    await state.update_data(project=project)
 
-await callback.message.edit_caption(
+    await callback.message.edit_caption(
     caption="💸 Введи цену:"
 )
 
-await state.set_state(Form.price)
+    await state.set_state(Form.price)
 
 
 # --- НАЗАД ---
