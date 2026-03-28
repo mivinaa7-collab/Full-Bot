@@ -1,13 +1,20 @@
-from aiogram.fsm.state import StatesGroup, State
+ from aiogram.fsm.state import StatesGroup, State
 
 
+# анкета
 class Form(StatesGroup):
-    about = State()     # о себе
-    source = State()    # откуда узнал
-    price = State()     # цена ссылки
-    tag = State()       # тег
+    about = State()
+    source = State()
 
 
+# создание ссылки
+class LinkForm(StatesGroup):
+    project = State()
+    price = State()
+    link = State()
+
+
+# админка (оставляем)
 class AdminFSM(StatesGroup):
-    broadcast = State()  # рассылка
-    ban = State()        # бан
+    broadcast = State()
+    ban = State()
