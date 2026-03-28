@@ -2,10 +2,12 @@ import random
 import string
 
 from aiogram import Router, F
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, Message
+from aiogram.fsm.context import FSMContext
 
 from keyboards.kb import projects_kb, main_menu_kb
 from database import create_link
+from states.states import Form
 
 router = Router()
 
@@ -28,21 +30,16 @@ def generate_link(project):
 # --- ВЫБОР ПРОЕКТА ---
 @router.callback_query(F.data.startswith("proj_"))
 async def choose_project(callback: CallbackQuery):
-    user_id = callback.from_user.id
+    
     project = callback.data.split("_")[1]
+    
+await state.update_data(project=project)
 
-    link = generate_link(project)
+await callback.message.edit_caption(
+    caption="💸 Введи цену:"
+)
 
-    create_link(user_id, project, link)
-
-    await callback.message.edit_caption(
-        caption=f"""✅ Ссылка создана
-
-🏷 Проект: {project}
-🔗 {link}
-""",
-        reply_markup=main_menu_kb()
-    )
+await state.set_state(Form.price)
 
 
 # --- НАЗАД ---
@@ -52,3 +49,26 @@ async def back(callback: CallbackQuery):
         caption="🌿 Главное меню",
         reply_markup=main_menu_kb()
     )
+
+@router.message(Form.price)
+async def set_price(message: Message, state: FSMContext):
+    data = await state.get_data()
+
+    project = data.get("project")
+    user_id = message.from_user.id
+    price = message.text
+
+    link = generate_link(project)
+
+    create_link(user_id, project, price, link)
+
+    await message.answer(
+        f"""✅ Ссылка создана
+
+📁 Проект: {project}
+💸 Цена: {price}
+🔗 {link}""",
+        reply_markup=main_menu_kb()
+    )
+
+    await state.clear()
