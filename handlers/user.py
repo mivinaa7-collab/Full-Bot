@@ -13,14 +13,6 @@ def generate_link(user_id, project):
     return f"https://example.com/{project}/{uuid.uuid4().hex[:6]}"
 
 
-# ---------- АНКЕТА ----------
-
-@router.message(Form.source)
-async def source(message: Message, state: FSMContext):
-    approve_user(message.from_user.id)
-    await message.answer("✅ Ты одобрен! Напиши /start")
-    await state.clear()
-
 
 # ---------- СОЗДАНИЕ ССЫЛКИ ----------
 
