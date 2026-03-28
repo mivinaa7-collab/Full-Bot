@@ -30,3 +30,14 @@ async def about(message: Message, state: FSMContext):
     await state.update_data(about=message.text)
     await message.answer("Откуда узнал?")
     await state.set_state(Form.source)
+
+from database import approve_user
+
+@router.message(Form.source)
+async def source(message: Message, state: FSMContext):
+    await state.update_data(source=message.text)
+
+    approve_user(message.from_user.id)
+
+    await message.answer("✅ Ты одобрен! Напиши /start")
+    await state.clear()
