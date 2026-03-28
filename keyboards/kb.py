@@ -40,3 +40,21 @@ def approve_kb(user_id: int):
             ]
         ]
     )
+
+# --- ПРОЕКТЫ ---
+def projects_kb():
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="🇺🇦 Privat24", callback_data="proj_privat"),
+                InlineKeyboardButton(text="🇺🇦 Oshad24", callback_data="proj_oshad"),
+            ],
+            [
+                InlineKeyboardButton(text="🇺🇦 Viber", callback_data="proj_viber"),
+                InlineKeyboardButton(text="🇺🇦 Дія", callback_data="proj_diya"),
+            ],
+            [
+                InlineKeyboardButton(text="🔙 Назад", callback_data="back_menu")
+            ]
+        ]
+    )
