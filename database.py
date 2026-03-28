@@ -58,15 +58,32 @@ conn.commit()
 # ---------- ФУНКЦИИ ----------
 
 def approve_user(user_id):
-    cursor.execute("INSERT OR IGNORE INTO users (user_id, approved) VALUES (?, 0)", (user_id,))
-    cursor.execute("UPDATE users SET approved=1 WHERE user_id=?", (user_id,))
+    conn = sqlite3.connect("bot.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO users (user_id, approved)
+        VALUES (?, 1)
+        ON CONFLICT(user_id) DO UPDATE SET approved=1
+    """, (user_id,))
+
     conn.commit()
+    conn.close()
 
 
 def is_approved(user_id):
-    cursor.execute("SELECT approved FROM users WHERE user_id=?", (user_id,))
-    r = cursor.fetchone()
-    return r and r[0] == 1
+    conn = sqlite3.connect("bot.db")
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT approved FROM users WHERE user_id = ?",
+        (user_id,)
+    )
+
+    result = cursor.fetchone()
+    conn.close()
+
+    return result is not None and result[0] == 1
 
 
 def get_settings(user_id):
