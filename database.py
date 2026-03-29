@@ -68,9 +68,9 @@ def create_link(user_id, project, price, link):
     cur = conn.cursor()
 
     cur.execute(
-        "INSERT INTO links (user_id, project, price, link) VALUES (%s, %s, %s)",
-        (user_id, project, price, link)
-    )
+    "INSERT INTO links (user_id, project, price, link) VALUES (%s, %s, %s, %s)",
+    (user_id, project, price, link)
+)
 
     conn.commit()
     conn.close()
