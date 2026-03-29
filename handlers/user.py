@@ -8,6 +8,7 @@ from aiogram.fsm.context import FSMContext
 from keyboards.kb import projects_kb, main_menu_kb
 from database import create_link
 from states.states import Form, LinkForm
+from aiogram.filters import StateFilter
 
 router = Router()
 
@@ -50,7 +51,7 @@ async def back(callback: CallbackQuery):
         reply_markup=main_menu_kb()
     )
 
-@router.message(LinkForm.price)
+@router.message(StateFilter(LinkForm.price))
 async def set_price(message: Message, state: FSMContext):
     data = await state.get_data()
 
