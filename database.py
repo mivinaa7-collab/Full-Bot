@@ -63,18 +63,21 @@ def is_approved(user_id: int) -> bool:
 
 # --- LINKS ---
 
-def create_link(user_id, project, price, link):
+def create_link(user_id, project, price):
     conn = get_conn()
     cur = conn.cursor()
 
     cur.execute(
-    "INSERT INTO links (user_id, project, price, link) VALUES (%s, %s, %s, %s)",
-    (user_id, project, price, link)
-)
+        "INSERT INTO links (user_id, project, price) VALUES (%s, %s, %s) RETURNING id",
+        (user_id, project, price)
+    )
+
+    link_id = cur.fetchone()[0]
 
     conn.commit()
     conn.close()
 
+    return link_id
 
 def get_user_links(user_id):
     conn = get_conn()
