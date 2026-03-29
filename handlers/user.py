@@ -31,6 +31,8 @@ def generate_link(project):
 # --- ВЫБОР ПРОЕКТА ---
 @router.callback_query(F.data.startswith("proj_"))
 async def choose_project(callback: CallbackQuery, state: FSMContext):
+   
+    await callback.answer()
     
     project = callback.data.split("_")[1]
     
