@@ -9,6 +9,9 @@ from keyboards.kb import projects_kb, main_menu_kb
 from database import create_link, get_user_links
 from states.states import Form, LinkForm
 from aiogram.filters import StateFilter
+from database import delete_link
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from config import PHOTO_URL
 
 router = Router()
 
@@ -64,15 +67,16 @@ async def set_price(message: Message, state: FSMContext):
 
     create_link(user_id, project, price, link)
 
-    await message.answer(
-        f"""✅ Ссылка создана
+    
+    await message.answer_photo(
+    photo=PHOTO_URL,
+    caption=f"""✅ Ссылка создана
 
 📁 Проект: {project}
 💸 Цена: {price}
 🔗 {link}""",
-        reply_markup=main_menu_kb()
-    )
-
+    reply_markup=main_menu_kb()
+)
     await state.clear()
 
 @router.callback_query(F.data == "my_links")
@@ -82,20 +86,57 @@ async def my_links(callback: CallbackQuery):
     links = get_user_links(user_id)
 
     if not links:
-        text = "❌ У тебя нет объявлений"
-    else:
-        text = "📂 Твои объявления:\n\n"
+        await callback.message.edit_caption(
+            caption="❌ У тебя нет объявлений",
+            reply_markup=main_menu_kb()
+        )
+        await callback.answer()
+        return
 
-        for project, price, link in links:
-            text += f"""📁 {project}
+    text = "📂 Твои объявления:\n\n"
+    keyboard = []
+
+    for i, (project, price, link) in enumerate(links):
+        text += f"""📁 {project}
 💸 {price}
 🔗 {link}
 
 """
 
-    await callback.message.answer(
-        text,
-        reply_markup=main_menu_kb()
+        keyboard.append([
+            InlineKeyboardButton(
+                text=f"❌ Удалить {i+1}",
+                callback_data=f"delete_{i}"
+            )
+        ])
+
+    keyboard.append([
+        InlineKeyboardButton(text="🔙 Назад", callback_data="back_menu")
+    ])
+
+    await callback.message.edit_caption(
+        caption=text,
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard)
     )
 
     await callback.answer()
+
+@router.callback_query(F.data.startswith("delete_"))
+async def delete(callback: CallbackQuery):
+    user_id = callback.from_user.id
+    index = int(callback.data.split("_")[1])
+
+    links = get_user_links(user_id)
+
+    if index >= len(links):
+        await callback.answer("Ошибка", show_alert=True)
+        return
+
+    link_to_delete = links[index][2]
+
+    delete_link(user_id, link_to_delete)
+
+    await callback.answer("Удалено ✅")
+
+    # обновляем список
+    await my_links(callback)
