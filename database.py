@@ -81,7 +81,7 @@ def get_user_links(user_id):
     cur = conn.cursor()
 
     cur.execute(
-        "SELECT project, link FROM links WHERE user_id = %s",
+        "SELECT project, price, link FROM links WHERE user_id = %s",
         (user_id,)
     )
 
