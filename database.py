@@ -88,3 +88,17 @@ def get_user_links(user_id):
     data = cur.fetchall()
     conn.close()
     return data
+
+     #---Удаление кнопка---
+
+ def delete_link(user_id, link):
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute(
+        "DELETE FROM links WHERE user_id = %s AND link = %s",
+        (user_id, link)
+    )
+
+    conn.commit()
+    conn.close()
