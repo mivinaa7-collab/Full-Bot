@@ -59,8 +59,7 @@ async def set_price(message: Message, state: FSMContext):
 
     project = data.get("project")
     user_id = message.from_user.id
-    price = message.text
-
+    price = int(message.text)
     link = generate_link(project)
 
     create_link(user_id, project, price, link)
