@@ -26,9 +26,6 @@ async def create_link_menu(callback: CallbackQuery):
 
 
 # --- ГЕНЕРАЦИЯ ---
-def generate_link(project):
-    rand = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-    return f"https://your-domain.com/{project}/{rand}"
 
 
 # --- ВЫБОР ПРОЕКТА ---
@@ -63,20 +60,20 @@ async def set_price(message: Message, state: FSMContext):
     project = data.get("project")
     user_id = message.from_user.id
     price = int(message.text)
-    link = generate_link(project)
 
-    create_link(user_id, project, price, link)
+    link_id = create_link(user_id, project, price)
+    link = f"https://ТВОЙ-ДОМЕН/link/{link_id}"
 
-    
     await message.answer_photo(
-    photo=PHOTO_URL,
-    caption=f"""✅ Ссылка создана
+        photo=PHOTO_URL,
+        caption=f"""✅ Ссылка создана
 
 📁 Проект: {project}
 💸 Цена: {price}
 🔗 {link}""",
-    reply_markup=main_menu_kb()
-)
+        reply_markup=main_menu_kb()
+    )
+
     await state.clear()
 
 @router.callback_query(F.data == "my_links")
