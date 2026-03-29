@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
 
 from keyboards.kb import projects_kb, main_menu_kb
-from database import create_link
+from database import create_link, get_user_links
 from states.states import Form, LinkForm
 from aiogram.filters import StateFilter
 
@@ -74,3 +74,28 @@ async def set_price(message: Message, state: FSMContext):
     )
 
     await state.clear()
+
+@router.callback_query(F.data == "my_links")
+async def my_links(callback: CallbackQuery):
+    user_id = callback.from_user.id
+
+    links = get_user_links(user_id)
+
+    if not links:
+        text = "❌ У тебя нет объявлений"
+    else:
+        text = "📂 Твои объявления:\n\n"
+
+        for project, price, link in links:
+            text += f"""📁 {project}
+💸 {price}
+🔗 {link}
+
+"""
+
+    await callback.message.edit_caption(
+        caption=text,
+        reply_markup=main_menu_kb()
+    )
+
+    await callback.answer()
