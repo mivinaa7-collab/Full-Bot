@@ -91,7 +91,7 @@ def get_user_links(user_id):
 
      #---Удаление кнопка---
 
- def delete_link(user_id, link):
+def delete_link(user_id, link):
     conn = get_conn()
     cur = conn.cursor()
 
