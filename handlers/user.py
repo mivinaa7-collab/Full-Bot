@@ -93,8 +93,8 @@ async def my_links(callback: CallbackQuery):
 
 """
 
-    await callback.message.edit_caption(
-        caption=text,
+    await callback.message.answer(
+        text,
         reply_markup=main_menu_kb()
     )
 
