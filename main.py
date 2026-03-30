@@ -4,6 +4,7 @@ from aiogram import Bot, Dispatcher
 
 from config import BOT_TOKEN
 from handlers import start, user, admin
+from handlers.admin import router as admin_router
 
 bot = Bot(BOT_TOKEN)
 dp = Dispatcher()
