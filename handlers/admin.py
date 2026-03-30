@@ -32,6 +32,7 @@ async def admin_panel(call: CallbackQuery):
         )
 
     await call.message.edit_text("⚙️ Админ панель", reply_markup=kb)
+    await call.answer()
 
 
 # --- АПРУВ ---
