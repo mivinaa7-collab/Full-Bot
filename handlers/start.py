@@ -5,7 +5,6 @@ from aiogram.fsm.context import FSMContext
 
 from keyboards.kb import main_menu_kb, approve_kb
 from states.states import Form
-from config import ADMIN_ID
 from database import is_approved
 
 router = Router()
