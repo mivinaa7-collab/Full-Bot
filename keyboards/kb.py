@@ -40,7 +40,7 @@ def approve_kb(user_id: int):
                 ),
                 InlineKeyboardButton(
                     text="❌ Отклонить",
-                    callback_data=f"decline_{user_id}"
+                    callback_data=f"reject_{user_id}"
                 )
             ]
         ]
