@@ -19,6 +19,8 @@ router = Router()
 # --- НАЖАЛ СОЗДАТЬ ССЫЛКУ ---
 @router.callback_query(F.data == "create_link")
 async def create_link_menu(callback: CallbackQuery):
+    await callback.answer()  # ← ДОБАВЬ
+
     await callback.message.edit_caption(
         caption="🏝 Выбери проект:",
         reply_markup=projects_kb()
