@@ -109,3 +109,4 @@ async def owner_panel(call: CallbackQuery):
     ])
 
     await call.message.edit_text("👑 OWNER PANEL", reply_markup=kb)
+    await call.answer()
