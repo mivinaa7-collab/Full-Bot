@@ -15,7 +15,7 @@ def is_senior(user_id):
 
 
 # --- МЕНЮ АДМИНКИ ---
-@router.callback_query(F.data == "admin")
+@router.callback_query(F.data == "admin_panel")
 async def admin_panel(call: CallbackQuery):
     if not is_senior(call.from_user.id):
         return await call.answer("Нет доступа", show_alert=True)
