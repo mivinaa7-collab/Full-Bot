@@ -62,7 +62,7 @@ async def set_price(message: Message, state: FSMContext):
     price = int(message.text)
 
     link_id = create_link(user_id, project, price)
-    link = f"https://ТВОЙ-ДОМЕН/link/{link_id}"
+    link = f"https://web-production-0572a.up.railway.app/link/{link_id}"
 
     await message.answer_photo(
         photo=PHOTO_URL,
