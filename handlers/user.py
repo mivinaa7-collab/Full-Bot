@@ -50,7 +50,7 @@ async def choose_project(callback: CallbackQuery, state: FSMContext):
 async def back(callback: CallbackQuery):
     await callback.message.edit_caption(
         caption="🌿 Главное меню",
-        reply_markup=main_menu_kb()
+        reply_markup=main_menu_kb(call.from_user.id)
     )
 
 @router.message(StateFilter(LinkForm.price))
@@ -71,7 +71,7 @@ async def set_price(message: Message, state: FSMContext):
 📁 Проект: {project}
 💸 Цена: {price}
 🔗 {link}""",
-        reply_markup=main_menu_kb()
+        reply_markup=main_menu_kb(message.from_user.id)
     )
 
     await state.clear()
@@ -85,7 +85,7 @@ async def my_links(callback: CallbackQuery):
     if not links:
         await callback.message.edit_caption(
             caption="❌ У тебя нет объявлений",
-            reply_markup=main_menu_kb()
+            reply_markup=main_menu_kb(call.from_user.id)
         )
         await callback.answer()
         return
