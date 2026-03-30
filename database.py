@@ -105,3 +105,18 @@ def delete_link(user_id, link):
 
     conn.commit()
     conn.close()
+
+         #---ban/unban---
+def ban_user(user_id):
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("UPDATE users SET banned = TRUE WHERE user_id = %s", (user_id,))
+    conn.commit()
+    conn.close()
+
+def unban_user(user_id):
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("UPDATE users SET banned = FALSE WHERE user_id = %s", (user_id,))
+    conn.commit()
+    conn.close()
