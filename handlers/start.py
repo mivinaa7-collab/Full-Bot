@@ -6,6 +6,7 @@ from aiogram.fsm.context import FSMContext
 from keyboards.kb import main_menu_kb, approve_kb
 from states.states import Form
 from database import is_approved
+from config import OWNER_ID
 
 router = Router()
 
@@ -16,7 +17,7 @@ async def start(message: Message, state: FSMContext):
         await message.answer_photo(
             photo="https://i.ibb.co/F4qhJVTk/325-ACC37-3-A44-4513-90-B6-3794-A64-CD078.png",
             caption="🌿 Добро пожаловать\n\n👇 Куда дальше?",
-            reply_markup=main_menu_kb()
+            reply_markup=main_menu_kb(message.from_user.id)
         )
         return
 
@@ -44,7 +45,7 @@ async def source(message: Message, state: FSMContext):
 
     # 🔥 отправка админу
     await message.bot.send_message(
-        ADMIN_ID,
+        OWNER_ID,
         text,
         reply_markup=approve_kb(message.from_user.id)
     )
