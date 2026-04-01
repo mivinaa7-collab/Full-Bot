@@ -1,62 +1,73 @@
-import random
-import string
-
 from aiogram import Router, F
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.context import FSMContext
+from aiogram.filters import StateFilter
 
 from keyboards.kb import projects_kb, main_menu_kb
-from database import create_link, get_user_links
-from states.states import Form, LinkForm
-from aiogram.filters import StateFilter
-from database import delete_link
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from database import create_link, get_user_links, delete_link
+from states.states import LinkForm
 from config import PHOTO_URL
 
 router = Router()
 
 
-# --- НАЖАЛ СОЗДАТЬ ССЫЛКУ ---
+# --- СОЗДАТЬ ССЫЛКУ ---
 @router.callback_query(F.data == "create_link")
 async def create_link_menu(callback: CallbackQuery):
-    await callback.answer()  # ← ДОБАВЬ
-
-    await callback.message.edit_caption(
-        caption="🏝 Выбери проект:",
-        reply_markup=projects_kb()
-    )
-
-
-# --- ГЕНЕРАЦИЯ ---
+    try:
+        await callback.message.edit_caption(
+            caption="🏝 Выбери проект:",
+            reply_markup=projects_kb()
+        )
+    except:
+        await callback.message.edit_text(
+            "🏝 Выбери проект:",
+            reply_markup=projects_kb()
+        )
+    await callback.answer()
 
 
 # --- ВЫБОР ПРОЕКТА ---
 @router.callback_query(F.data.startswith("proj_"))
 async def choose_project(callback: CallbackQuery, state: FSMContext):
-   
-    await callback.answer()
-    
     project = callback.data.split("_")[1]
-    
     await state.update_data(project=project)
 
-    await callback.message.edit_caption(
-    caption="💸 Введи цену:"
-)
+    try:
+        await callback.message.edit_caption(
+            caption="💸 Введи цену:"
+        )
+    except:
+        await callback.message.edit_text(
+            "💸 Введи цену:"
+        )
 
     await state.set_state(LinkForm.price)
+    await callback.answer()
 
 
 # --- НАЗАД ---
 @router.callback_query(F.data == "back_menu")
 async def back(callback: CallbackQuery):
-    await callback.message.edit_caption(
-        caption="🌿 Главное меню",
-        reply_markup=main_menu_kb(callback.from_user.id)
-    )
+    try:
+        await callback.message.edit_caption(
+            caption="🌿 Главное меню",
+            reply_markup=main_menu_kb(callback.from_user.id)
+        )
+    except:
+        await callback.message.edit_text(
+            "🌿 Главное меню",
+            reply_markup=main_menu_kb(callback.from_user.id)
+        )
+    await callback.answer()
 
+
+# --- ВВОД ЦЕНЫ ---
 @router.message(StateFilter(LinkForm.price))
 async def set_price(message: Message, state: FSMContext):
+    if not message.text or not message.text.isdigit():
+        return await message.answer("💸 Введи число")
+
     data = await state.get_data()
 
     project = data.get("project")
@@ -73,22 +84,29 @@ async def set_price(message: Message, state: FSMContext):
 📁 Проект: {project}
 💸 Цена: {price}
 🔗 {link}""",
-        reply_markup=main_menu_kb(message.from_user.id)
+        reply_markup=main_menu_kb(user_id)
     )
 
     await state.clear()
 
+
+# --- МОИ ОБЪЯВЛЕНИЯ ---
 @router.callback_query(F.data == "my_links")
 async def my_links(callback: CallbackQuery):
     user_id = callback.from_user.id
-
     links = get_user_links(user_id)
 
     if not links:
-        await callback.message.edit_caption(
-            caption="❌ У тебя нет объявлений",
-            reply_markup=main_menu_kb(callback.from_user.id)
-        )
+        try:
+            await callback.message.edit_caption(
+                caption="❌ У тебя нет объявлений",
+                reply_markup=main_menu_kb(user_id)
+            )
+        except:
+            await callback.message.edit_text(
+                "❌ У тебя нет объявлений",
+                reply_markup=main_menu_kb(user_id)
+            )
         await callback.answer()
         return
 
@@ -101,7 +119,6 @@ async def my_links(callback: CallbackQuery):
 🔗 {link}
 
 """
-
         keyboard.append([
             InlineKeyboardButton(
                 text=f"❌ Удалить {i+1}",
@@ -113,13 +130,21 @@ async def my_links(callback: CallbackQuery):
         InlineKeyboardButton(text="🔙 Назад", callback_data="back_menu")
     ])
 
-    await callback.message.edit_caption(
-        caption=text,
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard)
-    )
+    try:
+        await callback.message.edit_caption(
+            caption=text,
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard)
+        )
+    except:
+        await callback.message.edit_text(
+            text,
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard)
+        )
 
     await callback.answer()
 
+
+# --- УДАЛЕНИЕ ---
 @router.callback_query(F.data.startswith("delete_"))
 async def delete(callback: CallbackQuery):
     user_id = callback.from_user.id
@@ -128,11 +153,9 @@ async def delete(callback: CallbackQuery):
     links = get_user_links(user_id)
 
     if index >= len(links):
-        await callback.answer("Ошибка", show_alert=True)
-        return
+        return await callback.answer("Ошибка", show_alert=True)
 
     link_to_delete = links[index][2]
-
     delete_link(user_id, link_to_delete)
 
     await callback.answer("Удалено ✅")
