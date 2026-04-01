@@ -1,112 +1,96 @@
 from aiogram import Router, F
-from aiogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import CallbackQuery, Message, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.fsm.context import FSMContext
+from aiogram.filters import StateFilter
 
-from database import approve_user, ban_user, unban_user
+from database import approve_user, ban_user, unban_user, get_all_users
 from config import OWNER_ID, SENIOR_ADMINS
 
 router = Router()
 
 
-def is_owner(user_id):
-    return user_id == OWNER_ID
+class Broadcast:
+    text = "broadcast_text"
+
 
 def is_senior(user_id):
-    return user_id in SENIOR_ADMINS or user_id == OWNER_ID
+    return user_id in SENIOR_ADMINS
 
 
-# --- МЕНЮ АДМИНКИ ---
 @router.callback_query(F.data == "admin_panel")
 async def admin_panel(call: CallbackQuery):
     if not is_senior(call.from_user.id):
         return await call.answer("Нет доступа", show_alert=True)
 
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="📨 Заявки", callback_data="admin_apps")],
-        [InlineKeyboardButton(text="🔨 Бан", callback_data="admin_ban")],
-        [InlineKeyboardButton(text="♻️ Разбан", callback_data="admin_unban")],
+        [InlineKeyboardButton(text="📢 Рассылка", callback_data="broadcast")],
+        [InlineKeyboardButton(text="🔙 Назад", callback_data="back_menu")]
     ])
-
-    if is_owner(call.from_user.id):
-        kb.inline_keyboard.append(
-            [InlineKeyboardButton(text="⚙️ OWNER PANEL", callback_data="owner_panel")]
-        )
 
     await call.message.edit_text("⚙️ Админ панель", reply_markup=kb)
     await call.answer()
 
 
-# --- АПРУВ ---
-@router.callback_query(F.data.startswith("approve_"))
-async def approve(call: CallbackQuery):
-    if not is_senior(call.from_user.id):
-        return await call.answer("Нет доступа", show_alert=True)
-
-    user_id = int(call.data.split("_")[1])
-
-    approve_user(user_id)
-
-    await call.message.edit_text("✅ Пользователь одобрен")
-    await call.bot.send_message(user_id, "🎉 Ты одобрен")
-
+@router.callback_query(F.data == "broadcast")
+async def start_broadcast(call: CallbackQuery, state: FSMContext):
+    await call.message.edit_text("✍️ Введи текст рассылки:")
+    await state.set_state(Broadcast.text)
     await call.answer()
 
 
-# --- ОТКЛОН ---
+@router.message(StateFilter(Broadcast.text))
+async def send_broadcast(message: Message, state: FSMContext):
+    users = get_all_users()
+
+    sent = 0
+    for user_id in users:
+        try:
+            await message.bot.send_message(user_id, message.text)
+            sent += 1
+        except:
+            pass
+
+    await message.answer(f"✅ Отправлено: {sent}")
+    await state.clear()
+
+
+@router.callback_query(F.data.startswith("approve_"))
+async def approve(call: CallbackQuery):
+    user_id = int(call.data.split("_")[1])
+    approve_user(user_id)
+
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="🔨 Бан", callback_data=f"ban_{user_id}"),
+            InlineKeyboardButton(text="♻️ Разбан", callback_data=f"unban_{user_id}")
+        ]
+    ])
+
+    await call.message.edit_text("✅ Одобрен", reply_markup=kb)
+    await call.bot.send_message(user_id, "🎉 Ты одобрен")
+    await call.answer()
+
+
 @router.callback_query(F.data.startswith("reject_"))
 async def reject(call: CallbackQuery):
-    if not is_senior(call.from_user.id):
-        return await call.answer("Нет доступа", show_alert=True)
-
     user_id = int(call.data.split("_")[1])
 
     await call.message.edit_text("❌ Отклонен")
     await call.bot.send_message(user_id, "❌ Тебя отклонили")
-
     await call.answer()
 
 
-# --- БАН ---
 @router.callback_query(F.data.startswith("ban_"))
 async def ban(call: CallbackQuery):
-    if not is_senior(call.from_user.id):
-        return await call.answer("Нет доступа", show_alert=True)
-
     user_id = int(call.data.split("_")[1])
-
     ban_user(user_id)
 
-    await call.message.edit_text("🔨 Пользователь забанен")
-    await call.bot.send_message(user_id, "🚫 Ты забанен")
-
-    await call.answer()
+    await call.answer("Забанен")
 
 
-# --- РАЗБАН ---
 @router.callback_query(F.data.startswith("unban_"))
 async def unban(call: CallbackQuery):
-    if not is_senior(call.from_user.id):
-        return await call.answer("Нет доступа", show_alert=True)
-
     user_id = int(call.data.split("_")[1])
-
     unban_user(user_id)
 
-    await call.message.edit_text("♻️ Пользователь разбанен")
-    await call.bot.send_message(user_id, "✅ Ты разбанен")
-
-    await call.answer()
-
-
-# --- OWNER ПАНЕЛЬ ---
-@router.callback_query(F.data == "owner_panel")
-async def owner_panel(call: CallbackQuery):
-    if not is_owner(call.from_user.id):
-        return await call.answer("Нет доступа", show_alert=True)
-
-    kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="📊 Статистика", callback_data="stats")],
-        [InlineKeyboardButton(text="📢 Рассылка", callback_data="broadcast")],
-    ])
-
-    await call.message.edit_text("👑 OWNER PANEL", reply_markup=kb)
-    await call.answer()
+    await call.answer("Разбанен")
