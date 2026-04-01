@@ -3,7 +3,7 @@ from aiogram.types import CallbackQuery, Message, InlineKeyboardMarkup, InlineKe
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import StateFilter
 
-from database import approve_user, ban_user, unban_user, get_all_users
+from database import approve_user, ban_user, unban_user
 from config import OWNER_ID, SENIOR_ADMINS
 
 router = Router()
