@@ -1,15 +1,14 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from config import OWNER_ID
 
-# --- ОСНОВНОЕ МЕНЮ ПОД ФОТО ---
 def main_menu_kb(user_id):
-    kb = [
-        [InlineKeyboardButton(text="🏝 Создать ссылку", callback_data="create_link")],
-        [InlineKeyboardButton(text="🤍 Мои объявления", callback_data="my_links")],
-    ]
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="🏝 Создать ссылку", callback_data="create_link")],
+            [InlineKeyboardButton(text="🤍 Мои объявления", callback_data="my_links")],
+        ]
+    )
 
 
-# --- КНОПКИ ОДОБРЕНИЯ АНКЕТЫ ---
 def approve_kb(user_id: int):
     return InlineKeyboardMarkup(
         inline_keyboard=[
@@ -26,7 +25,7 @@ def approve_kb(user_id: int):
         ]
     )
 
-# --- ПРОЕКТЫ ---
+
 def projects_kb():
     return InlineKeyboardMarkup(
         inline_keyboard=[
